@@ -9,32 +9,9 @@
 import SwiftUI
 import PhotosUI
 
-@MainActor
-final class PhotoPickerViewModel: ObservableObject{
-    @Published private(set) var selectedImage: UIImage? = UIImage(named: "1")
-    @Published var imageSelection: PhotosPickerItem? = nil{
-        didSet{
-            setImage(from: imageSelection)
-        }
-    }
-    private func setImage(from selection : PhotosPickerItem?){
-        guard let selection else {return}
-        
-        Task{
-            if let data = try? await selection.loadTransferable(type: Data.self){
-                if let uiImage = UIImage(data: data){
-                    selectedImage = uiImage
-                    return
-                }
-            }
-        }
-    }
-    
-}
-
 struct SettingProfileView: View {
     @State private var Name:String = "이자민"
-    @StateObject private var viewModel = PhotoPickerViewModel()
+    @StateObject private var photoPicker = PhotoPicker()
     
 
     
@@ -42,9 +19,9 @@ struct SettingProfileView: View {
         NavigationView{
             VStack{
                 
-                PhotosPicker(selection: $viewModel.imageSelection, matching: .images){
+                PhotosPicker(selection: $photoPicker.imageSelection, matching: .images){
                     ZStack(alignment:.bottomTrailing){
-                        if let image = viewModel.selectedImage{
+                        if let image = photoPicker.selectedImage{
                             Image(uiImage: image)
                                 .resizable()
                                 .frame(width:104, height: 104)
@@ -73,7 +50,8 @@ struct SettingProfileView: View {
                 
                 Rectangle()
                   .foregroundColor(.clear)
-                  .frame(width: 345, height: 1)
+                  .frame(height: 1)
+                  .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
                   .background(.black)
                 
                 Text("\(Name.count) / 20")
